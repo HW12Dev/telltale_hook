@@ -63,9 +63,9 @@ lua_State *h_lua_newstate(lua_Alloc f, void *ud)
     return L;
 }
 
-#ifdef GAME_TWDDS_GAMEAPP
+#ifdef GAME_DEBUG
 __int64 h_ScriptManager__LoadResource(lua_State *L, const char *filename, bool bAllowGlobals)
-#elif defined(GAME_TWDDS)
+#elif defined(GAME_WIN64)
 __int64 h_ScriptManager__LoadResource(lua_State *L, const char *filename)
 #else
 int h_ScriptManager__LoadResource(lua_State* L, char* filename)
@@ -80,11 +80,11 @@ int h_ScriptManager__LoadResource(lua_State* L, char* filename)
                      "  return tthookprint(string.format(...))\n"
                      "end");
 
-    lua_register(L, "IsDebugBuild", generic_true);
+    //lua_register(L, "IsDebugBuild", generic_true);
 
-#ifdef GAME_TWDDS_GAMEAPP
+#ifdef GAME_DEBUG
     __int64 ret = o_ScriptManager__LoadResource(L, filename, bAllowGlobals);
-#elif defined(GAME_TWDDS)
+#elif defined(GAME_WIN64)
     __int64 ret = o_ScriptManager__LoadResource(L, filename);
 #else
     int ret = o_ScriptManager__LoadResource(L, filename);

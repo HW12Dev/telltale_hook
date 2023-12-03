@@ -4,7 +4,7 @@ project(telltale_hook LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(TELLTALE_GAME TWDDS)
+set(TELLTALE_GAME SMSTW_REMASTERED)
 
 set(IMGUI_DIR "Dependencies/imgui-1.90/")
 set(NLOHMANN_JSON_DIR "Dependencies/nlohmann-json/")
@@ -50,3 +50,6 @@ add_library(telltale_hook SHARED
             ${SOURCE})
 
 target_link_libraries(telltale_hook minhook)
+
+add_library(dinput8 SHARED
+            proxy/src/main.cpp)

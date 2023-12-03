@@ -3,41 +3,11 @@
 
 static HMODULE telltale_hook = nullptr;
 
-struct dinput8_dll
-{
-    HMODULE dll;
-    FARPROC OrignalDirectInput8Create;
-    FARPROC OrignalDllCanUnloadNow;
-    FARPROC OrignalDllGetClassObject;
-    FARPROC OrignalDllRegisterServer;
-    FARPROC OrignalDllUnregisterServer;
-    FARPROC OrignalGetdfDIJoystick;
-} dinput8;
+static HMODULE dll = nullptr;
 
-__declspec(naked) void FakeDirectInput8Create()
-{
-    _asm { jmp[dinput8.OrignalDirectInput8Create] }
-}
-__declspec(naked) void FakeDllCanUnloadNow()
-{
-    _asm { jmp[dinput8.OrignalDllCanUnloadNow] }
-}
-__declspec(naked) void FakeDllGetClassObject()
-{
-    _asm { jmp[dinput8.OrignalDllGetClassObject] }
-}
-__declspec(naked) void FakeDllRegisterServer()
-{
-    _asm { jmp[dinput8.OrignalDllRegisterServer] }
-}
-__declspec(naked) void FakeDllUnregisterServer()
-{
-    _asm { jmp[dinput8.OrignalDllUnregisterServer] }
-}
-__declspec(naked) void FakeGetdfDIJoystick()
-{
-    _asm { jmp[dinput8.OrignalGetdfDIJoystick] }
-}
+typedef HRESULT(__stdcall *DirectInput8Create_t)(HINSTANCE, DWORD, REFIID, LPVOID *, LPUNKNOWN);
+
+DirectInput8Create_t OriginalDirectInput8Create = nullptr;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
@@ -47,29 +17,29 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
     case DLL_PROCESS_ATTACH:
     {
         CopyMemory(path + GetSystemDirectory(path, MAX_PATH - 13), "\\dinput8.dll", 14);
-        dinput8.dll = LoadLibrary(path);
-        if (dinput8.dll == NULL)
+        dll = LoadLibrary(path);
+        if (dll == NULL)
         {
             MessageBox(0, "Cannot load original dinput8.dll library", "Proxy", MB_ICONERROR);
             ExitProcess(0);
         }
-        dinput8.OrignalDirectInput8Create = GetProcAddress(dinput8.dll, "DirectInput8Create");
-        dinput8.OrignalDllCanUnloadNow = GetProcAddress(dinput8.dll, "DllCanUnloadNow");
-        dinput8.OrignalDllGetClassObject = GetProcAddress(dinput8.dll, "DllGetClassObject");
-        dinput8.OrignalDllRegisterServer = GetProcAddress(dinput8.dll, "DllRegisterServer");
-        dinput8.OrignalDllUnregisterServer = GetProcAddress(dinput8.dll, "DllUnregisterServer");
-        dinput8.OrignalGetdfDIJoystick = GetProcAddress(dinput8.dll, "GetdfDIJoystick");
-
+        OriginalDirectInput8Create = reinterpret_cast<DirectInput8Create_t>(GetProcAddress(dll, "DirectInput8Create"));
+        
         telltale_hook = LoadLibrary("telltale_hook.dll");
 
         break;
     }
     case DLL_PROCESS_DETACH:
     {
-        FreeLibrary(dinput8.dll);
+        FreeLibrary(dll);
         FreeLibrary(telltale_hook);
     }
     break;
     }
     return TRUE;
+}
+extern "C" {
+  __declspec(dllexport) HRESULT DirectInput8Create(HINSTANCE a1, DWORD a2, REFIID a3, LPVOID * a4, LPUNKNOWN a5) {
+    return OriginalDirectInput8Create(a1, a2, a3, a4, a5);
+  }
 }

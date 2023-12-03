@@ -9,6 +9,16 @@
 
 #include "../telltale_types.hpp"
 
+#if defined(GAME_TWDDS_GAMEAPP)
+#define GAME_DEBUG
+#endif
+
+#if defined(GAME_TWDDS) || defined(GAME_SMSTW_REMASTERED)
+#define GAME_WIN64
+#else
+#define GAME_WIN32
+#endif
+
 #define FUNC_DEFINE(function_name, retn, ...) \
     typedef retn (*function_name##ptr)(__VA_ARGS__);                  \
     function_name##ptr function_name = NULL;
@@ -52,11 +62,11 @@ FUNC_DEFINE(lua_gettop, int, lua_State* L)
 // Telltale Tool / Engine functions
 
 // ScriptManager::LoadResource has a boolean parameter in debug builds
-#ifdef GAME_TWDDS_GAMEAPP
+#ifdef GAME_DEBUG
 FUNC_DEFINE(ScriptManager__LoadResource, __int64, lua_State* L, const char* filename, bool bAllowGlobals)
-#elif defined(GAME_TWDDS)
+#elif defined(GAME_WIN64)
 FUNC_DEFINE(ScriptManager__LoadResource, __int64, lua_State* L, const char* filename)
-#else
+#elif defined(GAME_WIN32)
 FUNC_DEFINE(ScriptManager__LoadResource, int, lua_State *L, char *filename)
 #endif
 
@@ -181,6 +191,33 @@ FUNC_OFFSET(TTArchive2__Activate, 0x0)
 
 #endif
 
+#ifdef GAME_SMSTW_REMASTERED
+
+// Lua functions
+FUNC_OFFSET(lua_newstate, 0x00000000008A85D0)
+
+FUNC_OFFSET(lua_pcallk, 0x00000000008A7CF0)
+
+FUNC_OFFSET(lua_pushcclosure, 0x00000000008A72E0)
+FUNC_OFFSET(lua_setglobal, 0x00000000008A77E0)
+
+FUNC_OFFSET(lua_tolstring, 0x00000000008A6CA0)
+
+FUNC_OFFSET(luaL_loadfilex, 0x00000000008AC1E0)
+FUNC_OFFSET(luaL_loadstring, 0x00000000008AC500)
+
+FUNC_OFFSET(lua_pushboolean, 0x00000000008A73C0)
+
+FUNC_OFFSET(lua_gettop, 0x00000000008A66A0)
+
+// Telltale Tool / Engine functions
+FUNC_OFFSET(ScriptManager__LoadResource, 0x00000000002037A0)
+
+FUNC_OFFSET(CRC32, 0x0)
+FUNC_OFFSET(CRC64_CaseInsensitive, 0x0)
+
+FUNC_OFFSET(TTArchive2__Activate, 0x0)
+#endif
 
 // game independent definitions, usually definitions from lua source
 #define lua_pushcfunction(L, f) lua_pushcclosure(L, (f), 0)

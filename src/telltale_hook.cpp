@@ -58,4 +58,7 @@ std::string telltale_hook::get_current_game() {
 #ifdef GAME_TWDDS
     return "WDC";
 #endif
+#ifdef GAME_SMSTW_REMASTERED
+  return "SamMax100";
+#endif
 }
